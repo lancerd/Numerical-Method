@@ -1,5 +1,3 @@
-// Name: Wang Wei Luan
-// Sutdent ID: 102022191
 #ifndef VEC_H
 #define VEC_H
 #include <iostream>

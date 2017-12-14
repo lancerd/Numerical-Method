@@ -1,5 +1,3 @@
-// Name: Wang Wei Luan
-// Sutdent ID: 102022191
 #ifndef MAT_H
 #define MAT_H
 #include "VEC.h"

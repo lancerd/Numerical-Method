@@ -1,5 +1,3 @@
-// Name: Wang Wei Luan
-// Sutdent ID: 102022191
 #include "MAT.h"
 #include <cmath>
 #include <cstdlib>
