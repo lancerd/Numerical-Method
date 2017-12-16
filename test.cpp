@@ -37,19 +37,19 @@ int main(void) {
     for (int i = 0; i < N; ++i) {
         x0[i] = -1;
     }
-    Problem ptag = {
-        .f = f, .g = g, .showIterationNumber = true, .tolerance = TOL};
+    Problem ptag = {.f = f, .g = g, .tolerance = TOL};
+    Result restag;
 
     cout << "-----------Steepest Descent-------------" << endl;
     VEC ans_Steepest_Descent(N);
-    ans_Steepest_Descent = Steepest_Descent(x0, &ptag);
+    ans_Steepest_Descent = Steepest_Descent(x0, &ptag, &restag);
     cout << "alpha = " << ALPHA << endl;
-    display_result(ans_Steepest_Descent, &ptag);
+    display_result(ans_Steepest_Descent, &ptag, &restag);
 
     cout << "----------------LBFGS-------------------" << endl;
     VEC ans_LBFGS(N);
-    ans_LBFGS = LBFGS(x0, M, &ptag);
-    cout << "m = " << M << ", alpha = " << ALPHA << endl;
-    display_result(ans_LBFGS, &ptag);
+    ans_LBFGS = LBFGS(x0, M, &ptag, &restag);
+    cout << "M = " << M << ", alpha = " << ALPHA << endl;
+    display_result(ans_LBFGS, &ptag, &restag);
     return 0;
 }

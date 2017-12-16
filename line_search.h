@@ -9,20 +9,25 @@ static const double ALPHA_MAX = 10;
 
 struct Problem {
     bool display;
-    bool showIterationNumber;
     int MaxIter;
     double tolerance;
     double (*f)(const VEC &);
     VEC (*g)(const VEC &);
 };
 
+struct Result {
+    int iterations;
+    int fCount;
+    double firstorderopt;
+};
+
 bool check_ptag(const Problem *);
 template <class T> static void display_result_help(const char *, const T &);
-void display_result(const VEC &, const Problem * = NULL);
+void display_result(const VEC &, const Problem * = NULL, const Result * = NULL);
 
 double step_length(const VEC &, const VEC &, const Problem * = NULL,
                    const double = -1, const double = C1, const double = C2,
                    const double = ALPHA_MAX);
-VEC Steepest_Descent(const VEC &, const Problem * = NULL);
-VEC LBFGS(const VEC &, const int, const Problem * = NULL);
+VEC Steepest_Descent(const VEC &, const Problem * = NULL, Result * = NULL);
+VEC LBFGS(const VEC &, const int, const Problem * = NULL, Result * = NULL);
 #endif

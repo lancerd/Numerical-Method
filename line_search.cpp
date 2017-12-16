@@ -31,11 +31,12 @@ static void display_result_help(const char *name, const T &value) {
     std::cout << name << std::endl << std::setw(5) << "" << value << std::endl;
 }
 
-void display_result(const VEC &x, const Problem *ptag) {
+void display_result(const VEC &x, const Problem *ptag, const Result *restag) {
     std::cout << "Result:" << std::endl;
     display_result_help("x", x);
+    display_result_help("iterations", restag->iterations);
     display_result_help("error", ptag->f(x));
-    display_result_help("gradient", ptag->g(x).norm());
+    display_result_help("1st order optimality", restag->firstorderopt);
 }
 
 double step_length(const VEC &x, const VEC &p, const Problem *ptag,
@@ -93,7 +94,7 @@ double step_length(const VEC &x, const VEC &p, const Problem *ptag,
     }
 }
 
-VEC Steepest_Descent(const VEC &x0, const Problem *ptag) {
+VEC Steepest_Descent(const VEC &x0, const Problem *ptag, Result *restag) {
     if (!check_ptag(ptag)) {
         return x0;
     }
@@ -111,13 +112,14 @@ VEC Steepest_Descent(const VEC &x0, const Problem *ptag) {
             break;
         }
     }
-    if (ptag->showIterationNumber) {
-        std::cout << "Number of iterations = " << iter << std::endl;
+    if (restag) {
+        restag->iterations = iter;
+        restag->firstorderopt = g(x).norm();
     }
     return x;
 }
 
-VEC LBFGS(const VEC &x0, const int m, const Problem *ptag) {
+VEC LBFGS(const VEC &x0, const int m, const Problem *ptag, Result *restag) {
     typedef std::vector<std::pair<VEC, VEC>> vecVV;
     auto setH = [&x0](MAT &H0, const vecVV &tmp_sy) -> void {
         double gamma;
@@ -178,8 +180,9 @@ VEC LBFGS(const VEC &x0, const int m, const Problem *ptag) {
             break;
         }
     }
-    if (ptag->showIterationNumber) {
-        std::cout << "Number of iterations = " << iter << std::endl;
+    if (restag) {
+        restag->iterations = iter;
+        restag->firstorderopt = g(x).norm();
     }
     return x;
 }
