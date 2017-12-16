@@ -37,11 +37,11 @@ void display_result(const VEC &x, const Problem *ptag, const Result *restag) {
     display_result_help("x", x);
     display_result_help("iterations", restag->iterations);
     display_result_help("function value", ptag->f(x));
-    display_result_help("1st order optimality", restag->firstorderopt);
+    display_result_help("1st order optimality", restag->first_order_optimality);
 }
 
 double step_length(const VEC &x, const VEC &p, const Problem *ptag,
-                   const double initialguess, const double c1, const double c2,
+                   const double initial_guess, const double c1, const double c2,
                    const double alpha_max) {
     // select a step length satisfying the Wolfe conditions
     // use step length selection algorithm 3.5, 3.6 in
@@ -49,7 +49,7 @@ double step_length(const VEC &x, const VEC &p, const Problem *ptag,
 
     // x : starting point
     // p : a decrease direction
-    // initialguess: initial guess of the step length
+    // initial_guess: initial guess of the step length
     //               e.g. for Newton Method, initialguess = 1
     // 0 < c1 < c2 < 1 : constant for Wolfe conditions
     double (*f)(const VEC &) = ptag->f;
@@ -61,10 +61,10 @@ double step_length(const VEC &x, const VEC &p, const Problem *ptag,
 
     double phi_0 = phi(0), phi_p0 = phip(0);
 
-    if (initialguess > 0 &&
-        phi(initialguess) - phi_0 <= c1 * initialguess * phi_p0 &&
-        phip(initialguess) >= c2 * phi_p0)
-        return initialguess;
+    if (initial_guess > 0 &&
+        phi(initial_guess) - phi_0 <= c1 * initial_guess * phi_p0 &&
+        phip(initial_guess) >= c2 * phi_p0)
+        return initial_guess;
 
     auto zoom = [&x, &p, &phi, &phip, phi_0, phi_p0, c1,
                  c2](double alpha_lo, double alpha_hi) -> double {
@@ -118,14 +118,14 @@ VEC Steepest_Descent(const VEC &x0, const Problem *ptag, Result *restag) {
         double alpha = step_length(x, p, ptag);
         x += p * alpha;
         ++iter;
-        if ((ptag->MaxIter >= 0 && iter == ptag->MaxIter) ||
+        if ((ptag->max_iteration >= 0 && iter == ptag->max_iteration) ||
             iter == MAXITERATION) {
             break;
         }
     }
     if (restag) {
         restag->iterations = iter;
-        restag->firstorderopt = g(x).norm();
+        restag->first_order_optimality = g(x).norm();
     }
     return x;
 }
@@ -135,7 +135,7 @@ VEC Newton(const VEC &x0, const Problem *ptag, Result *restag) {
         return x0;
     }
     if (ptag->H == NULL) {
-        std::cout << "gradient not set" << std::endl;
+        std::cout << "Hessian not set" << std::endl;
         return x0;
     }
     VEC (*g)(const VEC &) = ptag->g;
@@ -150,14 +150,14 @@ VEC Newton(const VEC &x0, const Problem *ptag, Result *restag) {
         double alpha = step_length(x, p, ptag, 1);
         x += p * alpha;
         ++iter;
-        if ((ptag->MaxIter >= 0 && iter == ptag->MaxIter) ||
+        if ((ptag->max_iteration >= 0 && iter == ptag->max_iteration) ||
             iter == MAXITERATION) {
             break;
         }
     }
     if (restag) {
         restag->iterations = iter;
-        restag->firstorderopt = g(x).norm();
+        restag->first_order_optimality = g(x).norm();
     }
     return x;
 }
@@ -218,14 +218,14 @@ VEC LBFGS(const VEC &x0, const int m, const Problem *ptag, Result *restag) {
         tmp_sy.push_back(std::make_pair(xp - x, g(xp) - g(x)));
         x = xp;
         ++iter;
-        if ((ptag->MaxIter >= 0 && iter == ptag->MaxIter) ||
+        if ((ptag->max_iteration >= 0 && iter == ptag->max_iteration) ||
             iter == MAXITERATION) {
             break;
         }
     }
     if (restag) {
         restag->iterations = iter;
-        restag->firstorderopt = g(x).norm();
+        restag->first_order_optimality = g(x).norm();
     }
     return x;
 }

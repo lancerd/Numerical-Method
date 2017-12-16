@@ -32,6 +32,7 @@ VEC g(const VEC &x) {
 
 MAT H(const VEC &x) {
     MAT res(x.len());
+    res.clear();
     for (int i = 0; i < N; i += 2) {
         res[i + 1][i + 1] = 2 * ALPHA;
         res[i + 1][i] = res[i][i + 1] = -4 * ALPHA * x[i];
