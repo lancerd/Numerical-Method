@@ -1,5 +1,5 @@
-test_*
-!test_*.cpp
+test*
+!test*.cpp
 .DS_Store
 *.o
 *.in

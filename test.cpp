@@ -5,7 +5,8 @@
 
 using namespace std;
 
-static const int N = 10;
+static const int N = 4;
+static const int M = 3;
 static const double TOL = 1e-6;
 static const double ALPHA = 1;
 
@@ -36,13 +37,19 @@ int main(void) {
     for (int i = 0; i < N; ++i) {
         x0[i] = -1;
     }
-    VEC ans(N);
     Problem ptag = {
         .f = f, .g = g, .showIterationNumber = true, .tolerance = TOL};
 
-    ans = Steepest_Descent(x0, &ptag);
-    cout << "alpha = " << ALPHA << endl << endl;
+    cout << "-----------Steepest Descent-------------" << endl;
+    VEC ans_Steepest_Descent(N);
+    ans_Steepest_Descent = Steepest_Descent(x0, &ptag);
+    cout << "alpha = " << ALPHA << endl;
+    display_result(ans_Steepest_Descent, &ptag);
 
-    display_result(ans, &ptag);
+    cout << "----------------LBFGS-------------------" << endl;
+    VEC ans_LBFGS(N);
+    ans_LBFGS = LBFGS(x0, M, &ptag);
+    cout << "m = " << M << ", alpha = " << ALPHA << endl;
+    display_result(ans_LBFGS, &ptag);
     return 0;
 }
