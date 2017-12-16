@@ -65,19 +65,12 @@ int main(void) {
         .f = f, .g = g, .H = H, .tolerance = TOL, .max_iteration = 10000};
     Result restag;
 
+    cout << "-------------test fminunc---------------" << endl;
+    cout << endl;
+
     cout << "----------Objective function------------" << endl;
     cout << "Rosenbrock's function" << endl;
     cout << "alpha = " << ALPHA << endl;
-
-    // cout << "-----------Steepest_Descent-------------" << endl;
-    // VEC ans_Steepest_Descent(N);
-    // ans_Steepest_Descent = Steepest_Descent(x0, &ptag, &restag);
-    // display_result(ans_Steepest_Descent, &ptag, &restag);
-    //
-    // cout << "----------------Newton------------------" << endl;
-    // VEC ans_Newton(N);
-    // ans_Newton = Newton(x0, &ptag, &restag);
-    // display_result(ans_Newton, &ptag, &restag);
 
     cout << "----------------LBFGS-------------------" << endl;
     VEC ans_LBFGS(N);
@@ -85,7 +78,6 @@ int main(void) {
     cout << "M = " << M << endl;
     display_result(ans_LBFGS, &ptag, &restag);
 
-    cout << "-------------test fminunc---------------" << endl;
     test_fminunc();
     return 0;
 }

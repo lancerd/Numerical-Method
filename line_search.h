@@ -24,15 +24,10 @@ struct Result {
     double first_order_optimality; // measure of 1st order optimality
 };
 
-void display_result(const VEC &x, const Problem *ptag = NULL,
-                    const Result *restag = NULL);
-double step_length(const VEC &x0, const VEC &p, const Problem *ptag = NULL,
+void display_result(const VEC &x, const Problem *ptag, const Result *restag);
+double step_length(const VEC &x0, const VEC &p, const Problem *ptag,
                    const double initial_guess = -1, const double c1 = C1,
                    const double c2 = C2, const double alpha_max = ALPHA_MAX);
-// VEC Steepest_Descent(const VEC &x0, const Problem *ptag = NULL,
-//                      Result *restag = NULL);
-// VEC Newton(const VEC &x0, const Problem *ptag = NULL, Result *restag = NULL);
-VEC LBFGS(const VEC &x0, const int m, const Problem *ptag = NULL,
-          Result *restag = NULL);
-VEC fminunc(const VEC &x0, const Problem *ptag = NULL, Result *restag = NULL);
+VEC LBFGS(const VEC &x0, const int m, const Problem *ptag, Result *restag);
+VEC fminunc(const VEC &x0, const Problem *ptag, Result *restag);
 #endif

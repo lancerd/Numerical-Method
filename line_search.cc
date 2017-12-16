@@ -6,7 +6,7 @@
 
 static const int MAXITERATION = 1e7;
 
-inline static bool check_ptag(const Problem *ptag) {
+static bool check_ptag(const Problem *ptag) {
     // check whether ptag is valid
     if (!ptag) {
         std::cout << "problem tag not set" << std::endl;
@@ -125,9 +125,9 @@ static void LBFGS_setH(MAT &H0,
     H0 = MAT::identity(H0.dim(), gamma);
 }
 
-static VEC LBFGS_solve(const MAT &H0, const VEC &gx,
+static VEC LBFGS_solve(const MAT &H0, const VEC &g,
                        const std::vector<std::pair<VEC, VEC>> &tmp_sy) {
-    VEC q(gx);
+    VEC q(g);
     std::vector<double> alpha(tmp_sy.size());
     // rho_k = 1 / (y_k * s_k)
     for (int i = (int)tmp_sy.size() - 1; i >= 0; --i) {
