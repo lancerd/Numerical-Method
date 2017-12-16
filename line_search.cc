@@ -20,8 +20,16 @@ inline static bool check_ptag(const Problem *ptag) {
         std::cout << "gradient not set" << std::endl;
         return false;
     }
+    if (ptag->algorithm == "Newton" && ptag->H == NULL) {
+        std::cout << "Hessian not set" << std::endl;
+        return false;
+    }
     if (ptag->tolerance <= 0) {
         std::cout << "tolerance not set" << std::endl;
+        return false;
+    }
+    if (ptag->max_iteration <= 0) {
+        std::cout << "max iteration not set" << std::endl;
         return false;
     }
     return true;
@@ -55,7 +63,7 @@ double step_length(const VEC &x, const VEC &p, const Problem *ptag,
     double (*f)(const VEC &) = ptag->f;
     VEC (*g)(const VEC &) = ptag->g;
 
-    // phi:
+    // phi: one dimensional minimization problem
     auto phi = [&f, &x, &p](double alpha) { return f(x + alpha * p); };
     auto phip = [&g, &x, &p](double alpha) { return g(x + alpha * p) * p; };
 
@@ -104,99 +112,41 @@ double step_length(const VEC &x, const VEC &p, const Problem *ptag,
     }
 }
 
-VEC Steepest_Descent(const VEC &x0, const Problem *ptag, Result *restag) {
-    if (!check_ptag(ptag)) {
-        return x0;
+static void LBFGS_setH(MAT &H0,
+                       const std::vector<std::pair<VEC, VEC>> &tmp_sy) {
+    double gamma;
+    if (!tmp_sy.empty()) {
+        const VEC &tmps = tmp_sy.back().first;
+        const VEC &tmpy = tmp_sy.back().second;
+        gamma = (tmps * tmpy) / (tmpy * tmpy);
+    } else {
+        gamma = 1;
     }
-    VEC (*g)(const VEC &) = ptag->g;
-
-    VEC x(x0);
-    int iter = 0;
-    while (g(x).norm() > ptag->tolerance) {
-        // descent direction = -gradient
-        VEC p(-g(x));
-        double alpha = step_length(x, p, ptag);
-        x += p * alpha;
-        ++iter;
-        if ((ptag->max_iteration >= 0 && iter == ptag->max_iteration) ||
-            iter == MAXITERATION) {
-            break;
-        }
-    }
-    if (restag) {
-        restag->iterations = iter;
-        restag->first_order_optimality = g(x).norm();
-    }
-    return x;
+    H0 = MAT::identity(H0.dim(), gamma);
 }
 
-VEC Newton(const VEC &x0, const Problem *ptag, Result *restag) {
-    if (!check_ptag(ptag)) {
-        return x0;
+static VEC LBFGS_solve(const MAT &H0, const VEC &gx,
+                       const std::vector<std::pair<VEC, VEC>> &tmp_sy) {
+    VEC q(gx);
+    std::vector<double> alpha(tmp_sy.size());
+    // rho_k = 1 / (y_k * s_k)
+    for (int i = (int)tmp_sy.size() - 1; i >= 0; --i) {
+        const VEC &s_i = tmp_sy[i].first, &y_i = tmp_sy[i].second;
+        const double rho_i = 1 / (y_i * s_i);
+        alpha[i] = rho_i * s_i * q;
+        q = q - alpha[i] * y_i;
     }
-    if (ptag->H == NULL) {
-        std::cout << "Hessian not set" << std::endl;
-        return x0;
+    VEC r(H0 * q);
+    for (int i = 0; i < (int)tmp_sy.size(); ++i) {
+        const VEC &s_i = tmp_sy[i].first, &y_i = tmp_sy[i].second;
+        const double rho_i = 1 / (y_i * s_i);
+        double beta = rho_i * y_i * r;
+        r = r + s_i * (alpha[i] - beta);
     }
-    VEC (*g)(const VEC &) = ptag->g;
-    MAT (*H)(const VEC &) = ptag->H;
-
-    VEC x(x0);
-    int iter = 0;
-    while (g(x).norm() > ptag->tolerance) {
-        // Newoton direction : H*p = -g;
-        VEC p(-luSolve(H(x), g(x)));
-        // initial guess is set to 1 to guarantee the quadratic convergence
-        double alpha = step_length(x, p, ptag, 1);
-        x += p * alpha;
-        ++iter;
-        if ((ptag->max_iteration >= 0 && iter == ptag->max_iteration) ||
-            iter == MAXITERATION) {
-            break;
-        }
-    }
-    if (restag) {
-        restag->iterations = iter;
-        restag->first_order_optimality = g(x).norm();
-    }
-    return x;
-}
+    return r;
+};
 
 VEC LBFGS(const VEC &x0, const int m, const Problem *ptag, Result *restag) {
-    typedef std::vector<std::pair<VEC, VEC>> vecVV;
-    auto setH = [&x0](MAT &H0, const vecVV &tmp_sy) -> void {
-        double gamma;
-        if (!tmp_sy.empty()) {
-            const VEC &tmps = tmp_sy.back().first;
-            const VEC &tmpy = tmp_sy.back().second;
-            gamma = (tmps * tmpy) / (tmpy * tmpy);
-        } else {
-            gamma = 1;
-        }
-        H0 = MAT::identity(H0.dim(), gamma);
-    };
-
-    auto LBFGS_solve = [](const MAT &H0, const VEC &gx,
-                          const vecVV &tmp_sy) -> VEC {
-        VEC q(gx);
-        std::vector<double> alpha(tmp_sy.size());
-        // rho_k = 1 / (y_k * s_k)
-        for (int i = (int)tmp_sy.size() - 1; i >= 0; --i) {
-            const VEC &s_i = tmp_sy[i].first, &y_i = tmp_sy[i].second;
-            const double rho_i = 1 / (y_i * s_i);
-            alpha[i] = rho_i * s_i * q;
-            q = q - alpha[i] * y_i;
-        }
-        VEC r(H0 * q);
-        for (int i = 0; i < (int)tmp_sy.size(); ++i) {
-            const VEC &s_i = tmp_sy[i].first, &y_i = tmp_sy[i].second;
-            const double rho_i = 1 / (y_i * s_i);
-            double beta = rho_i * y_i * r;
-            r = r + s_i * (alpha[i] - beta);
-        }
-        return r;
-    };
-
     if (!check_ptag(ptag)) {
         return x0;
     }
@@ -204,10 +154,10 @@ VEC LBFGS(const VEC &x0, const int m, const Problem *ptag, Result *restag) {
 
     VEC x(x0);
     int iter = 0;
-    vecVV tmp_sy;
+    std::vector<std::pair<VEC, VEC>> tmp_sy;
     while (g(x).norm() > ptag->tolerance) {
         MAT H0(x0.len());
-        setH(H0, tmp_sy);
+        LBFGS_setH(H0, tmp_sy);
         VEC p(LBFGS_solve(H0, -g(x), tmp_sy));
         double alpha = step_length(x, p, ptag, 1);
         VEC xp = x + p * alpha;
@@ -228,4 +178,53 @@ VEC LBFGS(const VEC &x0, const int m, const Problem *ptag, Result *restag) {
         restag->first_order_optimality = g(x).norm();
     }
     return x;
+}
+
+static VEC line_search_Steepest_Descent_update(const VEC &x,
+                                               const Problem *ptag) {
+    VEC p(-ptag->g(x));
+    double alpha = step_length(x, p, ptag);
+    return x + p * alpha;
+}
+
+static VEC line_search_Newton_update(const VEC &x, const Problem *ptag) {
+    VEC p(-luSolve(ptag->H(x), ptag->g(x)));
+    double alpha = step_length(x, p, ptag, 1);
+    return x + p * alpha;
+}
+
+static VEC line_search(const VEC &x0, const Problem *ptag, Result *restag,
+                       VEC (*update_strategy)(const VEC &, const Problem *)) {
+    if (update_strategy == NULL) {
+        return x0;
+    }
+    VEC (*g)(const VEC &) = ptag->g;
+
+    VEC x(x0);
+    int iter = 0;
+    for (iter = 0; g(x).norm() > ptag->tolerance && iter <= ptag->max_iteration;
+         ++iter) {
+        x = update_strategy(x, ptag);
+    }
+    if (restag) {
+        restag->iterations = iter;
+        restag->first_order_optimality = g(x).norm();
+    }
+    return x;
+}
+
+VEC fminunc(const VEC &x0, const Problem *ptag, Result *restag) {
+    if (!check_ptag(ptag)) {
+        return x0;
+    }
+
+    VEC (*update_strategy)(const VEC &, const Problem *) = NULL;
+    if (ptag->algorithm == "Steepest_Descent") {
+        update_strategy = line_search_Steepest_Descent_update;
+    } else if (ptag->algorithm == "Newton") {
+        update_strategy = line_search_Newton_update;
+    } else {
+        std::cout << "Please specify the algorithm in fminunc" << std::endl;
+    }
+    return line_search(x0, ptag, restag, update_strategy);
 }
