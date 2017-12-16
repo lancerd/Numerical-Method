@@ -6,7 +6,8 @@
 
 static const int MAXITERATION = 1e7;
 
-bool check_ptag(const Problem *ptag) {
+inline static bool check_ptag(const Problem *ptag) {
+    // check whether ptag is valid
     if (!ptag) {
         std::cout << "problem tag not set" << std::endl;
         return false;
@@ -42,10 +43,19 @@ void display_result(const VEC &x, const Problem *ptag, const Result *restag) {
 double step_length(const VEC &x, const VEC &p, const Problem *ptag,
                    const double initialguess, const double c1, const double c2,
                    const double alpha_max) {
-    // return step length satisfying the Wolfe conditions
+    // select a step length satisfying the Wolfe conditions
+    // use step length selection algorithm 3.5, 3.6 in
+    // Nocedal, J. and S. J. Wright. Numerical Optimization, Second Edition
+
+    // x : starting point
+    // p : a decrease direction
+    // initialguess: initial guess of the step length
+    //               e.g. for Newton Method, initialguess = 1
+    // 0 < c1 < c2 < 1 : constant for Wolfe conditions
     double (*f)(const VEC &) = ptag->f;
     VEC (*g)(const VEC &) = ptag->g;
 
+    // phi:
     auto phi = [&f, &x, &p](double alpha) { return f(x + alpha * p); };
     auto phip = [&g, &x, &p](double alpha) { return g(x + alpha * p) * p; };
 
@@ -103,6 +113,7 @@ VEC Steepest_Descent(const VEC &x0, const Problem *ptag, Result *restag) {
     VEC x(x0);
     int iter = 0;
     while (g(x).norm() > ptag->tolerance) {
+        // descent direction = -gradient
         VEC p(-g(x));
         double alpha = step_length(x, p, ptag);
         x += p * alpha;
@@ -133,7 +144,9 @@ VEC Newton(const VEC &x0, const Problem *ptag, Result *restag) {
     VEC x(x0);
     int iter = 0;
     while (g(x).norm() > ptag->tolerance) {
+        // Newoton direction : H*p = -g;
         VEC p(-luSolve(H(x), g(x)));
+        // initial guess is set to 1 to guarantee the quadratic convergence
         double alpha = step_length(x, p, ptag, 1);
         x += p * alpha;
         ++iter;
@@ -198,7 +211,7 @@ VEC LBFGS(const VEC &x0, const int m, const Problem *ptag, Result *restag) {
         VEC p(LBFGS_solve(H0, -g(x), tmp_sy));
         double alpha = step_length(x, p, ptag, 1);
         VEC xp = x + p * alpha;
-        // keep the m most recent (s_k, y_k)
+        // keep only the m most recent (s_k, y_k)
         if (iter > m) {
             tmp_sy.erase(tmp_sy.begin());
         }

@@ -3,26 +3,26 @@
 #include "MAT.h"
 #include "VEC.h"
 
-static const double C1 = 1e-4;
-static const double C2 = 0.99;
-static const double ALPHA_MAX = 10;
+static const double C1 = 1e-4;      // default constant for Armijo condition
+static const double C2 = 0.99;      // default constant for curvature condition
+static const double ALPHA_MAX = 10; // maximum step length allowed
 
 struct Problem {
-    bool display;
-    int MaxIter;
-    double tolerance;
-    double (*f)(const VEC &);
-    VEC (*g)(const VEC &);
-    MAT (*H)(const VEC &);
+    bool display;             // display step by step
+    int MaxIter;              // maximum number of iterations
+    double tolerance;         // tolerance of 1st order optimality
+    double (*f)(const VEC &); // objective function
+    VEC (*g)(const VEC &);    // gradient function
+    MAT (*H)(const VEC &);    // Hessian function
 };
 
 struct Result {
-    int iterations;
-    int fCount;
-    double firstorderopt;
+    int iterations;       // number of iterations
+    int fCount;           // number of objective function evaluation
+    double firstorderopt; // measure of 1st order optimality
 };
 
-bool check_ptag(const Problem *);
+inline static bool check_ptag(const Problem *);
 template <class T> static void display_result_help(const char *, const T &);
 void display_result(const VEC &, const Problem * = NULL, const Result * = NULL);
 
