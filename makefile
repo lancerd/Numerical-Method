@@ -13,8 +13,8 @@ all: $(test)
 $(test): % : $(objects) %.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $@.cpp $(objects)
 
-$(objects): %.o : %.h %.cpp
-	$(CXX) $(CXXFLAGS) -DDEBUG -c $(subst .o,,$@).cpp
+$(objects): %.o : %.h %.cc
+	$(CXX) $(CXXFLAGS) -DDEBUG -c $(subst .o,,$@).cc
 
 clean:
 	rm *.o
