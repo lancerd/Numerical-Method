@@ -35,7 +35,7 @@ void display_result(const VEC &x, const Problem *ptag, const Result *restag) {
     std::cout << "Result:" << std::endl;
     display_result_help("x", x);
     display_result_help("iterations", restag->iterations);
-    display_result_help("error", ptag->f(x));
+    display_result_help("function value", ptag->f(x));
     display_result_help("1st order optimality", restag->firstorderopt);
 }
 
@@ -43,8 +43,8 @@ double step_length(const VEC &x, const VEC &p, const Problem *ptag,
                    const double initialguess, const double c1, const double c2,
                    const double alpha_max) {
     // return step length satisfying the Wolfe conditions
-    double (*f)(const VEC &x) = ptag->f;
-    VEC (*g)(const VEC &x) = ptag->g;
+    double (*f)(const VEC &) = ptag->f;
+    VEC (*g)(const VEC &) = ptag->g;
 
     auto phi = [&f, &x, &p](double alpha) { return f(x + alpha * p); };
     auto phip = [&g, &x, &p](double alpha) { return g(x + alpha * p) * p; };
@@ -98,13 +98,43 @@ VEC Steepest_Descent(const VEC &x0, const Problem *ptag, Result *restag) {
     if (!check_ptag(ptag)) {
         return x0;
     }
-    VEC (*g)(const VEC &x) = ptag->g;
+    VEC (*g)(const VEC &) = ptag->g;
 
     VEC x(x0);
     int iter = 0;
     while (g(x).norm() > ptag->tolerance) {
         VEC p(-g(x));
         double alpha = step_length(x, p, ptag);
+        x += p * alpha;
+        ++iter;
+        if ((ptag->MaxIter >= 0 && iter == ptag->MaxIter) ||
+            iter == MAXITERATION) {
+            break;
+        }
+    }
+    if (restag) {
+        restag->iterations = iter;
+        restag->firstorderopt = g(x).norm();
+    }
+    return x;
+}
+
+VEC Newton(const VEC &x0, const Problem *ptag, Result *restag) {
+    if (!check_ptag(ptag)) {
+        return x0;
+    }
+    if (ptag->H == NULL) {
+        std::cout << "gradient not set" << std::endl;
+        return x0;
+    }
+    VEC (*g)(const VEC &) = ptag->g;
+    MAT (*H)(const VEC &) = ptag->H;
+
+    VEC x(x0);
+    int iter = 0;
+    while (g(x).norm() > ptag->tolerance) {
+        VEC p(-luSolve(H(x), g(x)));
+        double alpha = step_length(x, p, ptag, 1);
         x += p * alpha;
         ++iter;
         if ((ptag->MaxIter >= 0 && iter == ptag->MaxIter) ||
@@ -157,7 +187,7 @@ VEC LBFGS(const VEC &x0, const int m, const Problem *ptag, Result *restag) {
     if (!check_ptag(ptag)) {
         return x0;
     }
-    VEC (*g)(const VEC &x) = ptag->g;
+    VEC (*g)(const VEC &) = ptag->g;
 
     VEC x(x0);
     int iter = 0;

@@ -13,6 +13,7 @@ struct Problem {
     double tolerance;
     double (*f)(const VEC &);
     VEC (*g)(const VEC &);
+    MAT (*H)(const VEC &);
 };
 
 struct Result {
@@ -29,5 +30,6 @@ double step_length(const VEC &, const VEC &, const Problem * = NULL,
                    const double = -1, const double = C1, const double = C2,
                    const double = ALPHA_MAX);
 VEC Steepest_Descent(const VEC &, const Problem * = NULL, Result * = NULL);
+VEC Newton(const VEC &, const Problem * = NULL, Result * = NULL);
 VEC LBFGS(const VEC &, const int, const Problem * = NULL, Result * = NULL);
 #endif

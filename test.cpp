@@ -30,26 +30,42 @@ VEC g(const VEC &x) {
     return res;
 }
 
+MAT H(const VEC &x) {
+    MAT res(x.len());
+    for (int i = 0; i < N; i += 2) {
+        res[i + 1][i + 1] = 2 * ALPHA;
+        res[i + 1][i] = res[i][i + 1] = -4 * ALPHA * x[i];
+        res[i][i] = ALPHA * (12 * x[i] * x[i] - 4 * x[i + 1]) + 2;
+    }
+    return res;
+}
+
 int main(void) {
     using std::cout;
     using std::endl;
     VEC x0(N);
-    for (int i = 0; i < N; ++i) {
-        x0[i] = -1;
-    }
-    Problem ptag = {.f = f, .g = g, .tolerance = TOL};
+    x0.fill(-1);
+    Problem ptag = {.f = f, .g = g, .H = H, .tolerance = TOL};
     Result restag;
+
+    cout << "----------Objective function------------" << endl;
+    cout << "Rosenbrock's function" << endl;
+    cout << "alpha = " << ALPHA << endl;
 
     cout << "-----------Steepest Descent-------------" << endl;
     VEC ans_Steepest_Descent(N);
     ans_Steepest_Descent = Steepest_Descent(x0, &ptag, &restag);
-    cout << "alpha = " << ALPHA << endl;
     display_result(ans_Steepest_Descent, &ptag, &restag);
+
+    cout << "----------------Newton------------------" << endl;
+    VEC ans_Newton(N);
+    ans_Newton = Newton(x0, &ptag, &restag);
+    display_result(ans_Newton, &ptag, &restag);
 
     cout << "----------------LBFGS-------------------" << endl;
     VEC ans_LBFGS(N);
     ans_LBFGS = LBFGS(x0, M, &ptag, &restag);
-    cout << "M = " << M << ", alpha = " << ALPHA << endl;
+    cout << "M = " << M << endl;
     display_result(ans_LBFGS, &ptag, &restag);
     return 0;
 }
