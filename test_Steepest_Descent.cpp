@@ -3,10 +3,11 @@
 #include <cmath>
 #include <iostream>
 
-static const int N = 2;
-static const int M = 3;
+using namespace std;
+
+static const int N = 10;
 static const double TOL = 1e-6;
-static const double ALPHA = 100;
+static const double ALPHA = 1;
 
 double f(const VEC &x) {
     double ans = 0;
@@ -39,8 +40,8 @@ int main(void) {
     Problem ptag = {
         .f = f, .g = g, .showIterationNumber = true, .tolerance = TOL};
 
-    ans = LBFGS(x0, M, &ptag);
-    cout << "m = " << M << ", alpha = " << ALPHA << endl << endl;
+    ans = Steepest_Descent(x0, &ptag);
+    cout << "alpha = " << ALPHA << endl << endl;
 
     display_result(ans, &ptag);
     return 0;

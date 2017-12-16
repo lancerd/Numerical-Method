@@ -2,10 +2,8 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-
-#ifdef DEBUG
 #include <iostream>
-#endif
+#include <sstream>
 
 VEC::VEC(int n) {
     dim = n;
@@ -131,9 +129,14 @@ VEC *newVEC(int n) {
     return vptr;
 }
 std::ostream &operator<<(std::ostream &out, const VEC &v) {
-    out << "[ ";
-    for (int i = 0; i < v.len(); ++i)
-        out << v[i] << ", ";
-    out << "\b\b ]";
+    std::ostringstream strs;
+    strs << "[ ";
+    for (int i = 0; i < v.len(); ++i) {
+        if (i)
+            strs << ", ";
+        strs << v[i];
+    }
+    strs << " ]";
+    out << strs.str();
     return out;
 }

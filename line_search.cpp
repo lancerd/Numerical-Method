@@ -1,5 +1,7 @@
 #include "line_search.h"
 #include <cmath>
+#include <iomanip>
+#include <string>
 #include <vector>
 
 static const int MAXITERATION = 1e7;
@@ -22,6 +24,18 @@ bool check_ptag(const Problem *ptag) {
         return false;
     }
     return true;
+}
+
+template <class T>
+static void display_result_help(const char *name, const T &value) {
+    std::cout << name << std::endl << std::setw(5) << "" << value << std::endl;
+}
+
+void display_result(const VEC &x, const Problem *ptag) {
+    std::cout << "Result:" << std::endl;
+    display_result_help("x", x);
+    display_result_help("error", ptag->f(x));
+    display_result_help("gradient", ptag->g(x).norm());
 }
 
 double step_length(const VEC &x, const VEC &p, const Problem *ptag,
@@ -83,7 +97,6 @@ VEC Steepest_Descent(const VEC &x0, const Problem *ptag) {
     if (!check_ptag(ptag)) {
         return x0;
     }
-    double (*f)(const VEC &x) = ptag->f;
     VEC (*g)(const VEC &x) = ptag->g;
 
     VEC x(x0);
@@ -142,7 +155,6 @@ VEC LBFGS(const VEC &x0, const int m, const Problem *ptag) {
     if (!check_ptag(ptag)) {
         return x0;
     }
-    double (*f)(const VEC &x) = ptag->f;
     VEC (*g)(const VEC &x) = ptag->g;
 
     VEC x(x0);

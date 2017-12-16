@@ -1,3 +1,5 @@
+test_*
+!test_*.cpp
 .DS_Store
 *.o
 *.in

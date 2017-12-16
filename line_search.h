@@ -17,6 +17,8 @@ struct Problem {
 };
 
 bool check_ptag(const Problem *);
+template <class T> static void display_result_help(const char *, const T &);
+void display_result(const VEC &, const Problem * = NULL);
 
 double step_length(const VEC &, const VEC &, const Problem * = NULL,
                    const double = -1, const double = C1, const double = C2,

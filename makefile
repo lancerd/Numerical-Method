@@ -1,12 +1,21 @@
 
-all: VEC.o MAT.o line_search.o test_LBFGS.cpp
-	g++ -std=c++11 -O2 test_LBFGS.cpp VEC.o MAT.o line_search.o -Wfatal-errors
+CXXFLAGS = -std=c++11 -O2 -Wall -Wextra -Wfatal-errors
+CXX = g++
 
-VEC.o: VEC.h VEC.cpp
-	g++ -std=c++11 -O2 VEC.cpp -c -DDEBUG
+objects = VEC.o MAT.o line_search.o
+test = test_LBFGS test_Steepest_Descent
 
-MAT.o: MAT.h MAT.cpp
-	g++ -std=c++11 -O2 MAT.cpp -c -DDEBUG
+.PHONY: all clean
 
-line_search.o: line_search.h line_search.cpp
-	g++ -std=c++11 -O2 line_search.cpp -c
+all: $(test)
+	./test_Steepest_Descent
+	./test_LBFGS
+
+$(test): % : $(objects) %.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $@.cpp $(objects)
+
+$(objects): %.o : %.h %.cpp
+	$(CXX) $(CXXFLAGS) -DDEBUG -c $(subst .o,,$@).cpp
+
+clean:
+	rm *.o
