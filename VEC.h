@@ -27,6 +27,7 @@ class VEC {
     double &operator[](int);              // indexing
     const double &operator[](int) const;  // indexing
     void clear();                         // reset
+    void fill(double dbl);                // fill all element with dbl
     double norm() const;
     friend VEC operator*(double dbl, VEC v); // dbl * v
     friend VEC *newVEC(int);                 // aloocate new vec

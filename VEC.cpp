@@ -111,6 +111,10 @@ const double &VEC::operator[](int n) const {
     return val[n];
 }
 void VEC::clear() { memset(val, 0, dim * sizeof(double)); }
+void VEC::fill(double dbl) {
+    for (int i = 0; i < dim; ++i)
+        val[i] = dbl;
+}
 double VEC::norm() const {
     double ans = 0;
     for (int i = 0; i < dim; ++i)
